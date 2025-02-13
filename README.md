@@ -75,6 +75,10 @@ The Drive-Through Application is a web-based application that allows users to pl
 - **GET /orders/all/**: Retrieve a list of all active and canceled orders.
 - **POST /process_input/**: Process input through OpenAI to determine the action. Requires a JSON body with `order_text`.
 
+### API Documentation
+- **Swagger UI**: Access the Swagger documentation at `http://localhost:8000/docs` to explore the API endpoints interactively.
+- **Redoc**: Access the Redoc documentation at `http://localhost:8000/redoc` for a more detailed view of the API specifications.
+
 ### Frontend API Integration
 The frontend communicates with the backend APIs to fetch and manage orders. The Svelte application handles user input and displays the order status in real-time.
 

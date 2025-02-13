@@ -35,7 +35,7 @@ templates = Jinja2Templates(directory="html_templates")
 
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, summary="Home Page", description="Returns the home page for the API.")
 async def read_root(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
@@ -44,19 +44,19 @@ async def read_root(request: Request):
 
 
 # Login endpoint for authentication Note --- API cannot be hit withiout authentication
-@app.post("/token", response_model=dict, responses=login_responses)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = test_user.get(form_data.username)
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    access_token = create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+# @app.post("/token", response_model=dict, responses=login_responses, summary="User Login", description="Authenticate a user and return an access token.")
+# async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+#     user = test_user.get(form_data.username)
+#     if not user or not verify_password(form_data.password, user.hashed_password):
+#         raise HTTPException(status_code=400, detail="Incorrect username or password")
+#     access_token = create_access_token(data={"sub": user.username})
+#     return {"access_token": access_token, "token_type": "bearer"}
 
 
 
 
 
-@app.post("/orders/", response_model=dict, responses=create_order_responses)
+@app.post("/orders/", response_model=dict, responses=create_order_responses, summary="Create Order", description="Create a new order with specified items.")
 async def create_order(order_request: OrderRequest):
     global order_counter
 
@@ -85,7 +85,7 @@ async def create_order(order_request: OrderRequest):
 
 
 # Cancel an existing order (DELETE)
-@app.delete("/orders/cancel/", response_model=dict, responses=cancel_order_responses)
+@app.delete("/orders/cancel/", response_model=dict, responses=cancel_order_responses, summary="Cancel Order", description="Cancel an existing order by order number.")
 async def cancel_order(cancel_request: CancelOrderRequest):
     global orders, canceled_orders
 
@@ -117,14 +117,14 @@ async def cancel_order(cancel_request: CancelOrderRequest):
 
 
 # Get all canceled orders (GET)
-@app.get("/orders/canceled/", response_model=list)
+@app.get("/orders/canceled/", response_model=list, summary="Get Canceled Orders", description="Retrieve a list of all canceled orders.")
 async def get_canceled_orders():
     return canceled_orders
 
 
 
 
-@app.get("/orders/all/", response_model=dict)
+@app.get("/orders/all/", response_model=dict, summary="Get All Orders", description="Retrieve all active and canceled orders.")
 async def get_all_orders():
     # Combine active orders and canceled orders
     print("****"*10)
@@ -139,7 +139,7 @@ async def get_all_orders():
 
 
 # API to process input through OpenAI and take actions ===> PROCESSING INPUT and calling the above APIs
-@app.post("/process_input/", response_model=dict, responses={400: {"description": "Error processing input", "content": {"application/json": {"example": {"detail": "Error processing input <error_message>"}}}}})
+@app.post("/process_input/", response_model=dict, responses={400: {"description": "Error processing input", "content": {"application/json": {"example": {"detail": "Error processing input <error_message>"}}}}}, summary="Process Input", description="Process input through OpenAI and take actions based on the response.")
 async def process_input(order_request: OrderRequest):
    
     ordered_items = order_request.order_text
