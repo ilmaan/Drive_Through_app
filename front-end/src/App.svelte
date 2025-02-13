@@ -64,9 +64,11 @@
 			});
 			
 			console.log("response----->>>>",response);
-			const data = await response;
+			const data = await response.json();
 			console.log("data--+++++--->>>>",data);
 			if (response.ok) {
+			  alert(`Order placed successfully\n order number: ${data.order_no} \n order items: \n Burgers: ${data.order_items.burger} \n Drinks:${data.order_items.drink} \n Fries ${data.order_items.fries} `); 
+			  console.log(`Order placed successfully\n order number: ${data.order_no} \n order items:\n Burgers: ${JSON.stringify(data.order_items)}`);
 			  orderText = '';
 			  fetchOrders();
 			} else if (response.status === 400) {
