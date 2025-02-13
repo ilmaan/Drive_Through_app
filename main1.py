@@ -1,79 +1,21 @@
-from fastapi import FastAPI, requests, Request, UploadFile, File, HTTPException
+from fastapi import FastAPI, requests, Request, UploadFile, File, HTTPException, Depends
 from pydantic import BaseModel
 import openai
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import re
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from passlib.context import CryptContext
-from datetime import datetime, timedelta
-import jwt
-from fastapi import Depends
 
 # Helper function to process input and update the order_items dictionary
 from helper.order_helper import process_order, orders, order_items, order_counter, OrderRequest, canceled_orders,   CancelOrderRequest
 from helper.llm_processing import order_using_llm
+from helper.auth import test_user, verify_password, create_access_token, OAuth2PasswordRequestForm
+from helper.status_response import login_responses, create_order_responses, cancel_order_responses
 
 
 app = FastAPI(docs_url="/swagger", redoc_url="/redoc")
 
 
-
-# Constants for authentication
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-
-# JWT Authentication setup for authentication
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-class User:
-    def __init__(self, username: str, full_name: str, email: str, hashed_password: str):
-        self.username = username
-        self.full_name = full_name
-        self.email = email
-        self.hashed_password = hashed_password
-
-# test user database
-test_user = {
-    "testuser": User(
-        username="testuser",
-        full_name="Test User",
-        email="test@example.com",
-        hashed_password=pwd_context.hash("password")
-    )
-}
-
-
-# Function to verify password - ref fastapi documentation
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-# Function to create JWT tokene
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    expire = datetime.now() + (expires_delta if expires_delta else timedelta(minutes=15))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-
-# Login endpoint for authentication Note --- API cannot be hit withiout authentication
-@app.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = test_user.get(form_data.username)
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    access_token = create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
-connected_clients = []
 
 
 # ADDED MIDDLEWARES __ MESSED CODE FROM FRONTEND ALLOWANCE
@@ -100,8 +42,21 @@ async def read_root(request: Request):
 
 
 
-# Create a new order (POST) ==> CREATING ORDERS
-@app.post("/orders/", response_model=dict)
+
+# Login endpoint for authentication Note --- API cannot be hit withiout authentication
+@app.post("/token", response_model=dict, responses=login_responses)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = test_user.get(form_data.username)
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+
+
+
+@app.post("/orders/", response_model=dict, responses=create_order_responses)
 async def create_order(order_request: OrderRequest):
     global order_counter
 
@@ -129,10 +84,8 @@ async def create_order(order_request: OrderRequest):
 
 
 
-
-
 # Cancel an existing order (DELETE)
-@app.delete("/orders/cancel/", response_model=dict)
+@app.delete("/orders/cancel/", response_model=dict, responses=cancel_order_responses)
 async def cancel_order(cancel_request: CancelOrderRequest):
     global orders, canceled_orders
 
@@ -186,7 +139,7 @@ async def get_all_orders():
 
 
 # API to process input through OpenAI and take actions ===> PROCESSING INPUT and calling the above APIs
-@app.post("/process_input/", response_model=dict)
+@app.post("/process_input/", response_model=dict, responses={400: {"description": "Error processing input", "content": {"application/json": {"example": {"detail": "Error processing input <error_message>"}}}}})
 async def process_input(order_request: OrderRequest):
    
     ordered_items = order_request.order_text
