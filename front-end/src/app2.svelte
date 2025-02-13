@@ -12,6 +12,8 @@
 	let audioChunks = [];
 	let isRecording = false;
   
+	let recognition;
+  
 	async function fetchOrders() {
 	  try {
 		const response = await fetch('http://localhost:8100/orders/all');
@@ -30,82 +32,91 @@
 	  }
 	}
   
-	async function placeOrder() {
-	  try {
-		const response = await fetch('http://127.0.0.1:8100/process_input/', {
-		  method: 'POST',
-		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ order_text: orderText })
-		});
-		
-		console.log("response----->>>>",response);
-		const data = await response;
-		console.log("data--+++++--->>>>",data);
-		if (response.ok) {
-		  orderText = '';
-		  fetchOrders();
-		} else if (response.status === 400) {
-		  const errorData = await response.json();
-		  alert(errorData.detail); // Display the alert message
+	function validateOrderText(text) {
+		// Check if the order text is not empty
+		if (!text.trim()) {
+			alert('Order text cannot be empty.');
+			return false;
 		}
-		else {
-		  alert('Hello, Please order something! from the menu we have.');
+
+		// Example: Check if the order contains at least one of the keywords
+		const validKeywords = ['burger', 'fries', 'drink','cancel','burgers','drinks'];
+		const containsValidKeyword = validKeywords.some(keyword => text.toLowerCase().includes(keyword));
+
+		if (!containsValidKeyword) {
+			alert('Order must contain at least one valid item: burger, fries, or drink.');
+			return false;
 		}
-	  } catch (error) {
-		console.error('Error placing order:', error);
-	  }
+
+		return true;
 	}
   
-	async function handleMouseDown() {
-	  try {
-		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-		mediaRecorder = new MediaRecorder(stream);
+	async function placeOrder() {
+		if (!validateOrderText(orderText)) {
+			return; // Exit if validation fails
+		}
 
-		mediaRecorder.ondataavailable = event => {
-		  audioChunks.push(event.data);
-		};
-
-		mediaRecorder.onstop = async () => {
-		  const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-		  
-		  audioChunks = []; // Clear the chunks for the next recording
-		
-		  // Send only the audioBlob to the backend
-		  const formData = new FormData();
-		  formData.append('file', audioBlob, 'recording.mp3');
-
-		  console.log("formData-->>>>",formData);
-
-		  try {
-			const response = await fetch('http://127.0.0.1:8100/audio_order/', {
-			  method: 'POST',
-			  body: formData,
+		try {
+			const response = await fetch('http://127.0.0.1:8100/process_input/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ order_text: orderText })
 			});
-
+			
+			console.log("response----->>>>",response);
+			const data = await response;
+			console.log("data--+++++--->>>>",data);
 			if (response.ok) {
-			  console.log('Audio uploaded successfully');
-			} else {
-			  console.error('Failed to upload audio');
+			  orderText = '';
+			  fetchOrders();
+			} else if (response.status === 400) {
+			  const errorData = await response.json();
+			  alert(errorData.detail); // Display the alert message
 			}
-		  } catch (error) {
-			console.error('Error uploading audio:', error);
-		  }
+			else {
+			  alert('Hello, Please order something! from the menu we have.');
+			}
+		} catch (error) {
+			console.error('Error placing order:', error);
+		}
+	}
+  
+	function startRecording() {
+		if (!('webkitSpeechRecognition' in window)) {
+			alert('Speech recognition not supported in this browser.');
+			return;
+		}
+
+		recognition = new webkitSpeechRecognition();
+		recognition.interimResults = true;
+		recognition.lang = 'en-US';
+
+		recognition.onresult = (event) => {
+			const transcript = Array.from(event.results)
+				.map(result => result[0])
+				.map(result => result.transcript)
+				.join('');
+			orderText = transcript; // Set the recognized text to orderText
 		};
 
-		mediaRecorder.start();
-		isRecording = true;
-		console.log('Recording started');
-	  } catch (error) {
-		console.error('Error accessing audio devices:', error);
-	  }
+		recognition.onerror = (event) => {
+			console.error('Speech recognition error:', event.error);
+		};
+
+		recognition.start();
+		isRecording = true; // Update recording state
+	}
+
+	function stopRecording() {
+		if (recognition) {
+			recognition.stop();
+			isRecording = false; // Update recording state
+		}
 	}
 
 	function handleMouseUp() {
-	  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-		mediaRecorder.stop();
-		isRecording = false;
-		console.log('Recording stopped');
-	  }
+		stopRecording(); // Stop recording when the mouse is released
+		placeOrder(); // Submit the order
 	}
   
 	onMount(fetchOrders);
@@ -117,6 +128,17 @@
 	<p><strong>Total Burgers:</strong> {totalBurgers}</p>
 	<p><strong>Total Fries:</strong> {totalFries}</p>
 	<p><strong>Total Drinks:</strong> {totalDrinks}</p>
+
+	<h2>Place a New Order</h2>
+	<input type="text" bind:value={orderText} placeholder="Enter order details..." />
+	<button on:click={placeOrder}>Submit Order</button>
+	
+	<button 
+		on:mousedown={startRecording} 
+		on:mouseup={handleMouseUp}
+	>
+		{isRecording ? 'Recording...' : 'Hold to Record'}
+	</button>
 	
 	<h2>Active Orders</h2>
 	<table class="active-orders">
@@ -162,18 +184,9 @@
 		</tbody>
 	</table>
   
-	<h2>Place a New Order</h2>
-	<input type="text" bind:value={orderText} placeholder="Enter order details..." />
-	<button on:click={placeOrder}>Submit Order</button>
+
   
-	<h2>Record and Send Audio</h2>
-	<button 
-	  on:mousedown={handleMouseDown} 
-	  on:mouseup={handleMouseUp}
-	  class:is-recording={isRecording}
-	>
-	  Hold to Record
-	</button>
+	
   </main>
   
 

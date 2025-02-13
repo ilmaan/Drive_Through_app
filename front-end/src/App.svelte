@@ -21,12 +21,14 @@
 		console.log("DATRA",data);
 		activeOrders = data.active_orders;
 		canceledOrders = data.canceled_orders;
-		totalItems = activeOrders.reduce((sum, order) => sum + Object.values(order.order_items).reduce((a, b) => a + b, 0), 0);
 		
 		// Calculate total burgers, fries, and drinks
 		totalBurgers = activeOrders.reduce((sum, order) => sum + (order.order_items.burger || 0), 0);
 		totalFries = activeOrders.reduce((sum, order) => sum + (order.order_items.fries || 0), 0);
 		totalDrinks = activeOrders.reduce((sum, order) => sum + (order.order_items.drink || 0), 0);
+		
+		// Update totalItems to be the sum of totalBurgers, totalFries, and totalDrinks
+		totalItems = totalBurgers + totalFries + totalDrinks;
 	  } catch (error) {
 		console.error('Error fetching orders:', error);
 	  }
@@ -64,11 +66,9 @@
 			});
 			
 			console.log("response----->>>>",response);
-			const data = await response.json();
+			const data = await response;
 			console.log("data--+++++--->>>>",data);
 			if (response.ok) {
-			  alert(`Order placed successfully\n order number: ${data.order_no} \n order items: \n Burgers: ${data.order_items.burger} \n Drinks:${data.order_items.drink} \n Fries ${data.order_items.fries} `); 
-			  console.log(`Order placed successfully\n order number: ${data.order_no} \n order items:\n Burgers: ${JSON.stringify(data.order_items)}`);
 			  orderText = '';
 			  fetchOrders();
 			} else if (response.status === 400) {
@@ -122,6 +122,7 @@
 	}
   
 	onMount(fetchOrders);
+	
   </script>
   
   <main>

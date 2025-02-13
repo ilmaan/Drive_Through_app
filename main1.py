@@ -5,22 +5,78 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import re
 from fastapi.middleware.cors import CORSMiddleware
-
-# from openai import OpenAI
-
-
-
-
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from datetime import datetime, timedelta
+import jwt
+from fastapi import Depends
 
 # Helper function to process input and update the order_items dictionary
 from helper.order_helper import process_order, orders, order_items, order_counter, OrderRequest, canceled_orders,   CancelOrderRequest
-
-from helper.openaicreds import client
+from helper.llm_processing import order_using_llm
 
 
 app = FastAPI(docs_url="/swagger", redoc_url="/redoc")
 
 
+
+# Constants for authentication
+SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+# JWT Authentication setup for authentication
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+class User:
+    def __init__(self, username: str, full_name: str, email: str, hashed_password: str):
+        self.username = username
+        self.full_name = full_name
+        self.email = email
+        self.hashed_password = hashed_password
+
+# test user database
+test_user = {
+    "testuser": User(
+        username="testuser",
+        full_name="Test User",
+        email="test@example.com",
+        hashed_password=pwd_context.hash("password")
+    )
+}
+
+
+# Function to verify password - ref fastapi documentation
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+# Function to create JWT tokene
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.now() + (expires_delta if expires_delta else timedelta(minutes=15))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+# Login endpoint for authentication Note --- API cannot be hit withiout authentication
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = test_user.get(form_data.username)
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+connected_clients = []
+
+
+# ADDED MIDDLEWARES __ MESSED CODE FROM FRONTEND ALLOWANCE
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8080"], 
@@ -32,7 +88,7 @@ app.add_middleware(
 
 
 
-templates = Jinja2Templates(directory="frontend_base")
+templates = Jinja2Templates(directory="html_templates")
 
 
 
@@ -69,8 +125,6 @@ async def create_order(order_request: OrderRequest):
     print("\n\n\n",orders)
     
     return order_response
-
-
 
 
 
@@ -120,6 +174,7 @@ async def get_canceled_orders():
 @app.get("/orders/all/", response_model=dict)
 async def get_all_orders():
     # Combine active orders and canceled orders
+    print("****"*10)
     all_orders = {
         "active_orders": orders,
         "canceled_orders": canceled_orders
@@ -130,28 +185,15 @@ async def get_all_orders():
 
 
 
-
-
-
 # API to process input through OpenAI and take actions ===> PROCESSING INPUT and calling the above APIs
 @app.post("/process_input/", response_model=dict)
 async def process_input(order_request: OrderRequest):
-    # Call OpenAI API to process the input and determine the action
-
+   
     ordered_items = order_request.order_text
 
     try:
-        # Ensure the client is initialized correctly
-        response = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": f"User input: {ordered_items}\nPlease determine the appropriate action. Respond with either 'create_order' or 'cancel_order'. For 'create_order', return string of items and their quantities in numeric digits (example 5 burgers 4 fries 1 drink). For 'cancel_order', return 'cancel_order' and order number. If the order contains any item other than 'burger', 'fries', or 'drink', give out the reason for not being able to process the order. If the quantity is in words (e.g., 'sixteen'), convert it to digits."}
-    ],
-    max_tokens=50
-)
-        
-        action = response.choices[0].message.content.strip().lower()
+        # ADDED OPEN AI CALL IN HELPER FUNCTIONS
+        action = await order_using_llm(ordered_items)
 
         print("ACTION----",action,type(action),'--->>>\n\n')
         # print("ORDER TEXT----",order_request.order_text)
