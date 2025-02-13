@@ -26,8 +26,8 @@ The Drive-Through Application is a web-based application that allows users to pl
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/ilmaan/Drive_Through_app.git
+   cd https://github.com/ilmaan/Drive_Through_app.git
    ```
 
 2. **Set up the backend**:
@@ -62,7 +62,7 @@ The Drive-Through Application is a web-based application that allows users to pl
    ```
 
 3. **Access the application**:
-   - Open your web browser and navigate to `http://localhost:5000` (or the port specified by your Svelte app).
+   - Open your web browser and navigate to `http://localhost:8080` (or the port specified by your Svelte app).
 
 ## API Endpoints
 
