@@ -83,13 +83,3 @@ The frontend communicates with the backend APIs to fetch and manage orders. The 
 2. **Viewing Orders**: Active and canceled orders are displayed on the main page.
 3. **Canceling an Order**: To cancel an order, use the cancellation functionality provided in the application (if implemented).
 
-## Contributing
-Contributions are welcome! Please feel free to submit a pull request or open an issue for any enhancements or bug fixes.
-
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-- FastAPI for the backend framework.
-- Svelte for the frontend framework.
-- OpenAI for the AI processing capabilities. 
