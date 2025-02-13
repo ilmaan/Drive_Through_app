@@ -83,3 +83,6 @@ The frontend communicates with the backend APIs to fetch and manage orders. The 
 2. **Viewing Orders**: Active and canceled orders are displayed on the main page.
 3. **Canceling an Order**: To cancel an order, use the cancellation functionality provided in the application (if implemented).
 
+## NOTE
+1. **The OPENAI key is incorrect have to change it**: Email me at ilmaanzia@gmail.com for further details.
+
