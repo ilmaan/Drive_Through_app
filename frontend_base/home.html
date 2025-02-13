@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drive-Through Application API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        p {
+            color: #555;
+        }
+        .api-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .api-list li {
+            background-color: #fff;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        code {
+            background-color: #eaeaea;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Drive-Through Application API Documentation</h1>
+    <p>This documentation provides an overview of the APIs available in the Drive-Through Application built with FastAPI and Svelte.</p>
+
+    <h2>Available APIs</h2>
+    <ul class="api-list">
+        <li>
+            <strong>GET /</strong>
+            <p>Returns the home page of the application.</p>
+        </li>
+        <li>
+            <strong>POST /orders/</strong>
+            <p>Create a new order. Requires a JSON body with <code>order_text</code> containing the order details.</p>
+        </li>
+        <li>
+            <strong>DELETE /orders/cancel/</strong>
+            <p>Cancel an existing order. Requires a JSON body with <code>order_no</code> and <code>cancel_text</code>.</p>
+        </li>
+        <li>
+            <strong>GET /orders/canceled/</strong>
+            <p>Retrieve a list of all canceled orders.</p>
+        </li>
+        <li>
+            <strong>GET /orders/all/</strong>
+            <p>Retrieve a list of all active and canceled orders.</p>
+        </li>
+        <li>
+            <strong>POST /process_input/</strong>
+            <p>Process input through OpenAI to determine the action (create or cancel an order). Requires a JSON body with <code>order_text</code>.</p>
+        </li>
+    </ul>
+
+    <h2>Authentication</h2>
+    <p>For testing purposes, use the following credentials:</p>
+    <ul>
+        <li><strong>Username:</strong> testuser</li>
+        <li><strong>Password:</strong> password</li>
+    </ul>
+</body>
+</html> 

@@ -1,0 +1,95 @@
+# Drive-Through Application
+
+## Overview
+The Drive-Through Application is a web-based application that allows users to place and manage orders for food items. The backend is built using FastAPI, while the frontend is developed with Svelte. This application provides a seamless experience for users to create, view, and cancel orders.
+
+## Features
+- Create new orders for burgers, fries, and drinks.
+- Cancel existing orders.
+- View active and canceled orders.
+- Integration with OpenAI for processing user input.
+
+## Technologies Used
+- **Backend**: FastAPI
+- **Frontend**: Svelte
+- **Database**: In-memory storage (for demonstration purposes)
+- **OpenAI API**: For processing user input
+
+## Getting Started
+
+### Prerequisites
+- Python 3.7 or higher
+- Node.js and npm (for Svelte)
+- OpenAI API key (if using OpenAI features)
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
+
+2. **Set up the backend**:
+   - Navigate to the backend directory and install the required packages:
+     ```bash
+     cd backend
+     pip install -r requirements.txt
+     ```
+
+3. **Set up the frontend**:
+   - Navigate to the frontend directory and install the required packages:
+     ```bash
+     cd frontend
+     npm install
+     ```
+
+4. **Configure OpenAI credentials**:
+   - Ensure you have your OpenAI API key set up in the environment or in the appropriate configuration file.
+
+### Running the Application
+
+1. **Start the backend server**:
+   ```bash
+   cd backend
+   uvicorn main1:app --reload
+   ```
+
+2. **Start the frontend application**:
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+3. **Access the application**:
+   - Open your web browser and navigate to `http://localhost:5000` (or the port specified by your Svelte app).
+
+## API Endpoints
+
+### Backend API Endpoints
+
+- **GET /**: Returns the home page of the application.
+- **POST /orders/**: Create a new order. Requires a JSON body with `order_text`.
+- **DELETE /orders/cancel/**: Cancel an existing order. Requires a JSON body with `order_no` and `cancel_text`.
+- **GET /orders/canceled/**: Retrieve a list of all canceled orders.
+- **GET /orders/all/**: Retrieve a list of all active and canceled orders.
+- **POST /process_input/**: Process input through OpenAI to determine the action. Requires a JSON body with `order_text`.
+
+### Frontend API Integration
+The frontend communicates with the backend APIs to fetch and manage orders. The Svelte application handles user input and displays the order status in real-time.
+
+## Usage
+1. **Placing an Order**: Enter the order details in the input field and click "Submit Order". The order will be processed and added to the active orders list.
+2. **Viewing Orders**: Active and canceled orders are displayed on the main page.
+3. **Canceling an Order**: To cancel an order, use the cancellation functionality provided in the application (if implemented).
+
+## Contributing
+Contributions are welcome! Please feel free to submit a pull request or open an issue for any enhancements or bug fixes.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+- FastAPI for the backend framework.
+- Svelte for the frontend framework.
+- OpenAI for the AI processing capabilities. 
