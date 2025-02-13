@@ -43,17 +43,6 @@ async def read_root(request: Request):
 
 
 
-# Login endpoint for authentication Note --- API cannot be hit withiout authentication
-# @app.post("/token", response_model=dict, responses=login_responses, summary="User Login", description="Authenticate a user and return an access token.")
-# async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-#     user = test_user.get(form_data.username)
-#     if not user or not verify_password(form_data.password, user.hashed_password):
-#         raise HTTPException(status_code=400, detail="Incorrect username or password")
-#     access_token = create_access_token(data={"sub": user.username})
-#     return {"access_token": access_token, "token_type": "bearer"}
-
-
-
 
 
 @app.post("/orders/", response_model=dict, responses=create_order_responses, summary="Create Order", description="Create a new order with specified items.")
@@ -183,4 +172,15 @@ async def process_input(order_request: OrderRequest):
         print(f"Error processing input: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error processing input {str(e)}")
    
+
+
+# Login endpoint for authentication Note --- API cannot be hit withiout authentication
+# @app.post("/token", response_model=dict, responses=login_responses, summary="User Login", description="Authenticate a user and return an access token.")
+# async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+#     user = test_user.get(form_data.username)
+#     if not user or not verify_password(form_data.password, user.hashed_password):
+#         raise HTTPException(status_code=400, detail="Incorrect username or password")
+#     access_token = create_access_token(data={"sub": user.username})
+#     return {"access_token": access_token, "token_type": "bearer"}
+
 
