@@ -64,6 +64,11 @@ The Drive-Through Application is a web-based application that allows users to pl
 3. **Access the application**:
    - Open your web browser and navigate to `http://localhost:8080` (or the port specified by your Svelte app).
 
+### Video Demonstration
+- You can view a demonstration of the application in action by watching the following video:
+  ![Sample Running Video](sample_running.mp4)
+
+
 ## API Endpoints
 
 ### Backend API Endpoints
